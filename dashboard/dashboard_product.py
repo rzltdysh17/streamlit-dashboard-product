@@ -8,15 +8,7 @@ sns.set(style="darkgrid")
 st.set_page_config(page_title="Dashboard Produk", layout="wide")
 
 # Load data
-@st.cache_data
-def load_data():
-    df = pd.read_csv("product_final.csv")
-    df.dropna(subset=['product_category_name_english', 'product_length_cm', 
-                      'product_height_cm', 'product_width_cm', 'product_photos_qty'], inplace=True)
-    df["volume_cm3"] = df["product_length_cm"] * df["product_height_cm"] * df["product_width_cm"]
-    return df
-
-df = load_data()
+df = pd.read_csv("product_final.csv")
 
 # Sidebar filter
 st.sidebar.header("🔍 Filter Kategori Produk")
