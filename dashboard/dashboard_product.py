@@ -10,6 +10,8 @@ st.set_page_config(page_title="Dashboard Produk", layout="wide")
 # Load data
 df = pd.read_csv("product_final.csv")
 
+df["volume_cm3"] = df["product_length_cm"] * df["product_height_cm"] * df["product_width_cm"]
+
 # Sidebar filter
 st.sidebar.header("🔍 Filter Kategori Produk")
 
