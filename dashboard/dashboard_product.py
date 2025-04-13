@@ -2,15 +2,38 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import os
 
 # Setting style
 sns.set(style="darkgrid")
 st.set_page_config(page_title="Dashboard Produk", layout="wide")
 
 # Load data
-df = pd.read_csv("product_final.csv")
+@st.cache_data
+def load_data():
+    # Cek apakah file ada
+    if not os.path.exists("product_final.csv"):
+        st.error("File CSV tidak ditemukan!")
+        return pd.DataFrame()  # Mengembalikan DataFrame kosong jika file tidak ditemukan
 
-df["volume_cm3"] = df["product_length_cm"] * df["product_height_cm"] * df["product_width_cm"]
+    # Memuat data
+    df = pd.read_csv("product_final.csv")
+    
+    # Pastikan kolom yang diperlukan ada
+    required_columns = ['product_category_name_english', 'product_length_cm', 'product_height_cm', 
+                        'product_width_cm', 'product_photos_qty']
+    if not all(col in df.columns for col in required_columns):
+        st.error("Beberapa kolom yang diperlukan tidak ditemukan dalam dataset.")
+        return pd.DataFrame()  # Mengembalikan DataFrame kosong jika kolom tidak ditemukan
+
+    df.dropna(subset=required_columns, inplace=True)  # Hapus baris dengan nilai kosong pada kolom penting
+    df["volume_cm3"] = df["product_length_cm"] * df["product_height_cm"] * df["product_width_cm"]
+    return df
+
+df = load_data()
+
+if df.empty:  # Jika DataFrame kosong, hentikan eksekusi lebih lanjut
+    st.stop()
 
 # Sidebar filter
 st.sidebar.header("🔍 Filter Kategori Produk")
@@ -21,12 +44,8 @@ all_categories = sorted(df['product_category_name_english'].dropna().unique())
 # Tambahkan opsi 'Pilih Semua' dan 'Reset'
 select_all = st.sidebar.checkbox("Pilih Semua Kategori", value=True)
 
-if select_all:
-    selected_categories = st.sidebar.multiselect(
-        "Pilih Kategori Produk (A-Z)", all_categories, default=all_categories)
-else:
-    selected_categories = st.sidebar.multiselect(
-        "Pilih Kategori Produk (A-Z)", all_categories)
+selected_categories = st.sidebar.multiselect(
+    "Pilih Kategori Produk (A-Z)", all_categories, default=all_categories if select_all else [])
 
 # Filter data
 df_filtered = df[df['product_category_name_english'].isin(selected_categories)]
@@ -71,7 +90,7 @@ st.markdown("""
 ---
 <div style='text-align: center; font-size: 14px; color: gray;'>
     © Rizal Teddyansyah | 
-    <a href='https://github.com/' target='https://github.com/rzltdysh17'>GitHub</a> • 
-    <a href='https://linkedin.com/' target='https://www.linkedin.com/in/rizal-teddyansyah/'>LinkedIn</a>
+    <a href='https://github.com/rzltdysh17' target='_blank'>GitHub</a> • 
+    <a href='https://www.linkedin.com/in/rizal-teddyansyah/' target='_blank'>LinkedIn</a>
 </div>
 """, unsafe_allow_html=True)
